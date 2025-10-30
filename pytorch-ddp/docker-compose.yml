@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  pytorch-ddp-worker:
+    build: .
+    deploy:
+      replicas: 2  # Number of replicas (set this to your number of nodes)
+      resources:
+        limits:
+          cpus: "14.0"
+          memory: 32G
+    environment:
+      - MASTER_ADDR=worker1  # Set the master address for DDP
+      - MASTER_PORT=29500
+      - WORLD_SIZE=2  # Total number of nodes
+      - RANK=0  # Set the rank of each node in DDP (0 for master)
+    networks:
+      - pytorch-network
+    volumes:
+      - .:/app
+
+networks:
+  pytorch-network:
+    driver: bridge
