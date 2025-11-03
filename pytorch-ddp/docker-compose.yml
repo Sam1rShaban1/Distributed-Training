@@ -1,23 +1,29 @@
 version: '3.8'
 
 services:
-  pytorch-ddp-worker:
+  pytorch-ddp:
     build: .
     deploy:
-      replicas: 2  # Number of replicas (set this to your number of nodes)
+      mode: replicated
+      replicas: 3                 # total number of processes = total GPUs
+      placement:
+        max_replicas_per_node: 2  # master can host 2 containers (2 GPUs)
       resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]  # each container needs 1 GPU
         limits:
-          cpus: "14.0"
-          memory: 32G
+          cpus: "12.0" # Headroom for the OS
+          memory: 30G # Headroom for the OS
     environment:
-      - MASTER_ADDR=worker1  # Set the master address for DDP
+      - MASTER_ADDR=master-node-hostname  # replace with master hostname or IP
       - MASTER_PORT=29500
-      - WORLD_SIZE=2  # Total number of nodes
-      - RANK=0  # Set the rank of each node in DDP (0 for master)
-    networks:
-      - pytorch-network
+      - WORLD_SIZE=3                      # total DDP processes = total GPUs
+      - RANK={{.Task.Slot}}               # Swarm auto assigns ranks 1..3
     volumes:
       - .:/app
+    networks:
+      - pytorch-network
 
 networks:
   pytorch-network:
