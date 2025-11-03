@@ -21,4 +21,4 @@ services:
 
 networks:
   pytorch-network:
-    driver: bridge
+    driver: overlay
